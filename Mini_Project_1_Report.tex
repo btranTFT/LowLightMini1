@@ -1,0 +1,242 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+% Page header
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Mini Project 1: Dataset Curation \& Preprocessing}
+\fancyhead[R]{\small Low-Light Image Enhancement}
+\fancyfoot[C]{\thepage}
+
+% Title formatting
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+
+% Code listing style
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10}
+}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+\title{\textbf{Mini Project 1: Dataset Curation \& Preprocessing}\\
+\large Low-Light Image Enhancement Dataset Preparation}
+\author{[Your Name]\\
+Computer Vision Class}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Objective}
+
+This mini project focuses on collecting, preprocessing, and organizing low-light image datasets to support the final group project on Hybrid Low-Light Image Enhancement. The goal was to create a ready-to-use dataset with proper train/test splits, preprocessing (resizing and normalization), and data augmentation (synthetic darkening) for both classical and machine learning approaches.
+
+\section{Dataset Collection}
+
+\subsection{Dataset Source}
+
+The \textbf{LOL (Low-Light) Dataset} was selected as the primary dataset for this project. The dataset structure includes:
+\begin{itemize}
+    \item \textbf{Training Set (\texttt{our485/})}: 485 image pairs (low-light and corresponding high-light ground truth)
+    \item \textbf{Evaluation Set (\texttt{eval15/})}: 15 image pairs for final evaluation
+\end{itemize}
+
+The dataset contains real-world low-light images captured under various lighting conditions, making it suitable for testing enhancement algorithms.
+
+\subsection{Dataset Organization}
+
+The dataset was organized with the following structure:
+\begin{lstlisting}[language=bash]
+lol_dataset/
+├── our485/
+│   ├── low/   (485 low-light images)
+│   └── high/  (485 ground truth images)
+└── eval15/
+    ├── low/   (15 low-light images)
+    └── high/  (15 ground truth images)
+\end{lstlisting}
+
+\section{Preprocessing Pipeline}
+
+A comprehensive preprocessing pipeline was implemented using Python with OpenCV, NumPy, and scikit-learn. The pipeline consists of three main stages:
+
+\subsection{Image Resizing}
+
+All images were resized to a uniform size of \textbf{512×512 pixels} using bilinear interpolation. This standardization ensures:
+\begin{itemize}
+    \item Consistent input dimensions for all models
+    \item Reduced computational requirements
+    \item Maintained aspect ratio through proper interpolation
+\end{itemize}
+
+\subsection{Normalization}
+
+Images were normalized using \textbf{standard normalization} (zero mean, unit variance):
+\begin{itemize}
+    \item Formula: $(x - \mu) / \sigma$
+    \item Results scaled to [0, 255] range for compatibility with standard image processing libraries
+    \item This normalization improves model convergence and stabilizes training
+\end{itemize}
+
+\subsection{Data Augmentation}
+
+Synthetic darkening augmentation was applied to increase dataset diversity and robustness. The augmentation process:
+\begin{itemize}
+    \item Creates \textbf{9 additional variations} per original image
+    \item Uses multiple darkening factors (0.2, 0.3, 0.4)
+    \item Applies gamma correction with values (1.8, 2.0, 2.2)
+    \item Adds controlled noise to simulate real-world low-light conditions
+\end{itemize}
+
+This augmentation strategy significantly expands the training dataset while maintaining realistic low-light characteristics.
+
+\subsection{Train/Test Split}
+
+The dataset was split using an \textbf{80/20 ratio}:
+\begin{itemize}
+    \item \textbf{Training set}: 80\% of images (with augmentation applied)
+    \item \textbf{Validation set}: 20\% of images (no augmentation, for unbiased evaluation)
+    \item \textbf{Test set}: 15 images from \texttt{eval15} (held-out evaluation set)
+\end{itemize}
+
+The split was performed using scikit-learn's \texttt{train\_test\_split} with a fixed random seed (42) for reproducibility.
+
+\section{Results}
+
+\subsection{Dataset Statistics}
+
+\textbf{Final Processed Dataset:}
+\begin{itemize}
+    \item \textbf{Original Training Images}: 776 images (from \texttt{our485/low})
+    \item \textbf{Processed Training Images}: 7,760 images (with augmentation)
+    \begin{itemize}
+        \item Each original image generates 10 versions (1 original + 9 augmented)
+    \end{itemize}
+    \item \textbf{Validation Images}: 194 images (no augmentation)
+    \item \textbf{Test Images}: 15 images (from \texttt{eval15})
+    \item \textbf{Total Processed Images}: 7,969 images
+\end{itemize}
+
+\textbf{Image Specifications:}
+\begin{itemize}
+    \item Resolution: 512 × 512 pixels
+    \item Format: JPEG
+    \item Color space: RGB (BGR in OpenCV)
+    \item Normalization: Standard normalization applied
+\end{itemize}
+
+\subsection{Output Structure}
+
+The processed dataset is organized as follows:
+\begin{lstlisting}[language=bash]
+processed_dataset/
+├── train/              # 7,760 training images
+│   ├── image1.jpg
+│   ├── image1_aug1.jpg
+│   ├── image1_aug2.jpg
+│   └── ...
+├── test/               # 209 test images
+│   ├── validation images (194)
+│   └── eval_*.png (15)
+├── visualizations/     # Preprocessing examples
+│   ├── preprocessing_examples_train.png
+│   └── preprocessing_examples_test.png
+└── dataset_stats.json  # Dataset statistics
+\end{lstlisting}
+
+\subsection{Visual Deliverables}
+
+The following visualizations were generated:
+\begin{enumerate}
+    \item \textbf{Preprocessing Examples}: Side-by-side comparisons showing original, resized, normalized, and synthetically darkened images
+    \item \textbf{Dataset Statistics}: Statistical analysis including:
+    \begin{itemize}
+        \item Brightness distribution histograms
+        \item RGB channel statistics
+        \item Image size distribution
+        \item Train/test split visualization
+    \end{itemize}
+\end{enumerate}
+
+\section{Implementation Details}
+
+\subsection{Tools and Libraries}
+\begin{itemize}
+    \item \textbf{Python 3.11}
+    \item \textbf{OpenCV}: Image processing and manipulation
+    \item \textbf{NumPy}: Numerical operations
+    \item \textbf{scikit-learn}: Train/test splitting
+    \item \textbf{Matplotlib}: Visualization
+    \item \textbf{tqdm}: Progress tracking
+\end{itemize}
+
+\subsection{Key Features Implemented}
+\begin{enumerate}
+    \item Automated dataset discovery (recursive image search)
+    \item Configurable preprocessing parameters (size, normalization method)
+    \item Flexible augmentation strategies
+    \item Progress tracking and error handling
+    \item Comprehensive visualization generation
+\end{enumerate}
+
+\section{Deliverables}
+
+The following deliverables have been completed:
+\begin{itemize}
+    \item[$\checkmark$] \textbf{Preprocessed Dataset}: Ready-to-use dataset with train/test splits
+    \item[$\checkmark$] \textbf{Visual Examples}: Preprocessing step demonstrations
+    \item[$\checkmark$] \textbf{Statistics Report}: JSON file with dataset metrics
+    \item[$\checkmark$] \textbf{Visualization Tools}: Scripts for dataset analysis
+    \item[$\checkmark$] \textbf{Documentation}: Code documentation and usage guides
+\end{itemize}
+
+\section{Future Integration}
+
+This preprocessed dataset is now ready for:
+\begin{enumerate}
+    \item \textbf{Classical Methods}: Histogram equalization and Retinex-based enhancement
+    \item \textbf{Machine Learning Approaches}: Neural network training and evaluation
+    \item \textbf{Hybrid Pipeline}: Combining classical and ML methods for comparison
+\end{enumerate}
+
+The consistent preprocessing ensures fair comparison across different enhancement approaches in the final project.
+
+\section{Conclusion}
+
+The dataset curation and preprocessing mini project has been successfully completed. The LOL dataset has been processed, augmented, and split into appropriate train/test sets. The preprocessing pipeline includes resizing, normalization, and synthetic darkening augmentation, resulting in a dataset of 7,969 processed images ready for the final group project on Hybrid Low-Light Image Enhancement.
+
+The dataset is properly organized, documented, and includes visual examples demonstrating each preprocessing step. All code is modular and reusable, allowing for easy extension and modification as needed for the final project implementation.
+
+\vspace{0.5cm}
+\noindent\textbf{Files Generated:}
+\begin{itemize}
+    \item \texttt{dataset\_preprocessing.py}: Main preprocessing script
+    \item \texttt{process\_lol\_dataset.py}: LOL-specific processing script
+    \item \texttt{visualize\_dataset.py}: Statistical visualization tool
+    \item \texttt{processed\_dataset/}: Preprocessed dataset
+    \item \texttt{visualizations/}: All generated visual examples
+\end{itemize}
+
+\end{document}
+
