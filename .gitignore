@@ -1,7 +1,6 @@
 # Dataset directories (too large for git)
 lol_dataset/
 processed_dataset/
-visualizations/
 
 # Python
 __pycache__/
